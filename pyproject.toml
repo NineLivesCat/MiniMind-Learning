@@ -1,0 +1,93 @@
+[project]
+name = "minimind-env"
+version = "0.1.0"
+description = "One shared uv environment for both the minimind and minimind-v repositories"
+requires-python = ">=3.11,<3.12"
+readme = "ENVIRONMENT.md"
+
+# 依赖 = minimind/requirements.txt + minimind-v/requirements.txt 的并集
+# 两者冲突时取较新的版本；仅当旧 pin 在本机无法安装/无法与新版共存时才上移版本，
+# 每一处上移都在下面用注释标出原因。
+dependencies = [
+    # ---------- PyTorch (RTX 5070 Ti = Blackwell = sm_120，需要 CUDA 12.8+ 构建) ----------
+    "torch==2.9.1",
+
+    # ---------- 两个仓库共用的训练 / 推理核心 ----------
+    "transformers==4.57.6",
+    "tokenizers>=0.22,<0.23",
+    "datasets==3.6.0",
+    "pyarrow==23.0.0",
+    "numpy==1.26.4",
+    "pillow>=11,<12",                # 未固定版本：gradio<12 / streamlit<13，解析器会选 11.x
+    "safetensors>=0.4.1",
+    "accelerate>=1.0",
+    "sentencepiece==0.2.0",
+
+    # ---------- 训练 / 后训练工具链 ----------
+    "trl==0.13.0",
+    "peft>=0.14,<0.20",              # 原 pin 0.7.1 与 transformers 4.57 不兼容（仓库代码未直接 import peft）
+    "scikit_learn==1.5.1",
+    "sentence_transformers==2.3.1",
+    "einops==0.8.1",
+    "ujson>=5.10",                   # 原 pin 5.1.0 无 cp311 wheel，需源码编译
+    "jsonlines==4.0.0",
+    "tiktoken==0.10.0",
+    "wandb==0.22.3",
+    "swanlab==0.9.8",
+    "psutil==5.9.8",
+    "rich==13.7.1",
+    "nltk==3.8",
+    "jieba==0.42.1",
+    "datasketch==1.6.4",
+    "simhash==2.1.2",
+    "protobuf==6.33.5",
+
+    # ---------- 可视化 / 绘图 ----------
+    "matplotlib>=3.10,<3.11",        # 原 pin 3.5.1 无 cp311 wheel，且只被一个脚本 import
+
+    # ---------- Web / API demo ----------
+    "streamlit==1.50.0",
+    "gradio==5.49.1",
+    "modelscope-studio==1.6.1",
+    "fastapi==0.120.1",
+    "uvicorn==0.38.0",
+    "flask==3.0.3",
+    "flask-cors==4.0.0",
+    "jinja2==3.1.2",
+    "python-multipart==0.0.22",
+    "openai==1.59.6",
+    "pydantic==2.11.5",              # minimind 用 2.11.5，minimind-v 用 2.8.2，并列时取新
+    "marshmallow==3.22.0",
+    "ngrok==1.4.0",
+    "requests>=2.32",
+
+    # ---------- 权重 / 数据集下载 ----------
+    "modelscope==1.37.0",
+
+    # ---------- venv 内置 pip（uv venv 默认不带 pip；装上便于 pip list / pip install 排查） ----------
+    "pip>=25",
+]
+
+# 工程根目录本身不是一个要安装的 Python 包，uv sync 只负责装依赖。
+[tool.uv]
+package = false
+
+# ---------------------------------------------------------------------------
+# 索引配置（国内网络）
+#   - 默认 PyPI 走阿里云镜像（速度快）
+#   - torch 走上海交大 pytorch-wheels 镜像（官方 download.pytorch.org 本机约 0.9MB/s）
+#   如果你在海外/有代理，可以删掉下面两段并把 [tool.uv.sources] 改成官方索引：
+#     url = "https://download.pytorch.org/whl/cu128"
+# ---------------------------------------------------------------------------
+[[tool.uv.index]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple"
+default = true
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://mirror.sjtu.edu.cn/pytorch-wheels/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }

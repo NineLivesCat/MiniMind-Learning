@@ -1,0 +1,21 @@
+MiniMind 命令行版
+==================
+
+文字对话：
+    minimind.exe
+    minimind.exe "你好，介绍一下你自己"
+    minimind.exe --max-new-tokens 128 "写一首关于秋天的诗"
+
+看图问答（需要 model\sft_vlm_768.pth 和 model\siglip2）：
+    minimind.exe --image 图片.jpg
+    minimind.exe --image 图片.jpg "描述这张图"
+
+常用参数：
+    --device cpu|cuda|auto      auto 默认：有 N 卡用 GPU，否则 CPU
+    --max-new-tokens 256
+    --temperature 0.85 --top-p 0.85 --top-k 50
+    --history 3                 对话时携带最近 3 轮上下文
+    --model-dir 目录            模型不在 exe 同级 model/ 时用
+    --help
+
+交互模式：/clear 清空上下文，/exit 退出。
